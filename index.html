@@ -139,10 +139,13 @@
         const CAT3 =
           "https://cataas.com/cat/595f280b557291a9750ebf65/says/JavaScript";
 
-        const [counter, setCounter] = React.useState(jsonLocalStorage.getItem('counter'));
+        const [counter, setCounter] = React.useState(() => { // useState에 직접 값을 넣는게 아니라, 함수 식으로 넣어 reload 됐을 떄 딱 한번만 불러옴. 계속 localStorage에 접근하는 불필요한 일을 안함
+          return (jsonLocalStorage.getItem('counter'));
+        })
         const [mainCat, setMainCat] = React.useState(CAT1);
-        const [favorites, setFavorites] = React.useState(jsonLocalStorage.getItem('favorites') || []);
-
+        const [favorites, setFavorites] = React.useState(() => {
+         return jsonLocalStorage.getItem('favorites') || []
+        });
         const alreadyFavorite = favorites.includes(mainCat);
 
         async function setInitialCat() {
@@ -159,9 +162,11 @@
           const newCat = await fetchCat(value);
 
           setMainCat(newCat);
-          const nextCounter = counter + 1;
-          setCounter(nextCounter);
-          jsonLocalStorage.setItem('counter', nextCounter);
+          setCounter((prev) => { //prev == 기존값, previous  //값 대신 함수를 넘기자!!
+            const nextCounter = prev + 1;
+            jsonLocalStorage.setItem('counter', nextCounter);
+            return nextCounter;
+          });
         }
 
         function handleHeartClick() {
@@ -170,9 +175,11 @@
           jsonLocalStorage.setItem('favorites', nextFavorites)
         }
 
+        const counterTitle = counter === null ? "" : counter + "번째"
+
         return (
           <div>
-            <Title>{counter}번째 고양이 가라사대</Title>
+            <Title>{counterTitle} 고양이 가라사대</Title>
             <Form updateMainCat={updateMainCat} />
             <MainCard img={mainCat} onHeartClick={handleHeartClick} alreadyFavorite={alreadyFavorite}/>
             <Favorites favorites={favorites} />
